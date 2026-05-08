@@ -6,19 +6,46 @@ app.use(express.static('public'));
 
 let urlMap = {};
 
+// SHORTEN API (custom + random)
 app.post('/shorten', (req, res) => {
-    const longUrl = req.body.url;
-    const shortId = Math.random().toString(36).substring(7);
+    const { url, custom } = req.body;
 
-    urlMap[shortId] = longUrl;
+    if (!url || !url.startsWith("http")) {
+        return res.json({ error: "Enter valid URL" });
+    }
+
+    let shortId = custom || Math.random().toString(36).substring(7);
+
+    if (urlMap[shortId]) {
+        return res.json({ error: "Custom URL already exists" });
+    }
+
+    urlMap[shortId] = { url: url, clicks: 0 };
 
     res.json({ shortUrl: "http://localhost:3000/" + shortId });
 });
 
+// ✅ IMPORTANT: stats route FIRST
+app.get('/stats/:id', (req, res) => {
+    const data = urlMap[req.params.id];
+
+    if (data) {
+        res.json({
+            url: data.url,
+            clicks: data.clicks
+        });
+    } else {
+        res.send("No data found");
+    }
+});
+
+// REDIRECT + CLICK COUNT
 app.get('/:id', (req, res) => {
-    const longUrl = urlMap[req.params.id];
-    if (longUrl) {
-        res.redirect(longUrl);
+    const data = urlMap[req.params.id];
+
+    if (data) {
+        data.clicks++;
+        res.redirect(data.url);
     } else {
         res.send("URL not found");
     }

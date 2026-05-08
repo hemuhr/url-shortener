@@ -1,4 +1,4 @@
-name: DevOps Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -10,5 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - run: docker build -t url-shortener .
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Show Files
+        run: ls
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Docker Image
+        run: docker build -t url-shortener .
